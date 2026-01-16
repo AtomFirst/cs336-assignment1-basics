@@ -136,8 +136,11 @@ def train_bpe(
         merges.append((token1, token2))
 
         # debug
-        # if len(merges) == 92:
-        #     print(token_pairs_count.most_common(10))
+        # if len(merges) == 197:
+        #     max_count = token_pairs_count.most_common(1)[0][1]
+        #     candidates = [key for key, count in token_pairs_count.items() if count == max_count]
+        #     for a, b in candidates:
+        #         print(f'{vocab[a]}, {vocab[b]} ')
 
         for node1, i in set(token_pairs_pointer[token_id_pair]):
             if (node1, i) not in token_pairs_pointer[token_id_pair]:
