@@ -8,7 +8,8 @@ from ._bi_linked_list import BiNode, BiLinkedList
 
 def pre_tokenize(
     input_path: str | os.PathLike,
-    special_tokens: list[str]
+    special_tokens: list[str],
+    num_processes: int = 64
 ) -> dict[str, int]:
     
     pattern_special_tokens = '|'.join(map(re.escape, special_tokens))
@@ -20,7 +21,6 @@ def pre_tokenize(
     pre_tokens_count: dict[str, int] = defaultdict(int)
 
     with open(input_path, "rb") as f:
-        num_processes = 1
         boundaries = find_chunk_boundaries(f, num_processes, b"<|endoftext|>")
 
         # The following is a serial implementation, but you can parallelize this
@@ -35,7 +35,7 @@ def pre_tokenize(
                 for match in re.finditer(pattern_pre_tokens, doc):
                     pre_token = match.group()
                     pre_tokens_count[pre_token] += 1
-
+            
     return pre_tokens_count
 
 
@@ -43,6 +43,7 @@ def train_bpe(
     input_path: str | os.PathLike,
     vocab_size: int,
     special_tokens: list[str],
+    num_processes: int = 64,
     **kwargs,
 ) -> tuple[dict[int, bytes], list[tuple[bytes, bytes]]]:
     """Given the path to an input corpus, train a BPE tokenizer and
@@ -88,7 +89,7 @@ def train_bpe(
             )),
             count
         )
-        for pre_token, count in pre_tokenize(input_path, special_tokens).items()
+        for pre_token, count in pre_tokenize(input_path, special_tokens, num_processes).items()
     ]
 
     # (token1, token2) -> {(node of token1, index of their pre tokens in pre_tokens_and_count)}
@@ -134,6 +135,9 @@ def train_bpe(
         vocab_total += 1
         vocab[new_id] = token1 + token2
         merges.append((token1, token2))
+
+        # debug
+        # print(new_id, vocab[new_id])
 
         # debug
         # if len(merges) == 197:
