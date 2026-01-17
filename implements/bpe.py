@@ -2,6 +2,8 @@ import os
 import regex as re
 from collections import defaultdict, Counter
 
+from tqdm import tqdm
+
 from cs336_basics.pretokenization_example import find_chunk_boundaries
 from ._bi_linked_list import BiNode, BiLinkedList
 
@@ -25,7 +27,7 @@ def pre_tokenize(
 
         # The following is a serial implementation, but you can parallelize this
         # by sending each start/end pair to a set of processes.
-        for start, end in zip(boundaries[:-1], boundaries[1:]):
+        for start, end in tqdm(zip(boundaries[:-1], boundaries[1:]), desc='pre_tokenize', unit='chunk'):
             f.seek(start)
             chunk = f.read(end - start).decode("utf-8", errors="ignore")
 
@@ -121,6 +123,7 @@ def train_bpe(
 
     merges: list[tuple[bytes, bytes]] = []
 
+    pbar = tqdm(total=vocab_size - vocab_total, desc='merge tokens', unit='merge')
     while vocab_total < vocab_size:
         token_id_pair, _count = get_most_common_with_tiebreaker(token_pairs_count)
         if token_id_pair is None:
@@ -175,5 +178,9 @@ def train_bpe(
         
         del token_pairs_count[token_id_pair]
         del token_pairs_pointer[token_id_pair]
+
+        pbar.update()
+    
+    pbar.close()
 
     return vocab, merges
