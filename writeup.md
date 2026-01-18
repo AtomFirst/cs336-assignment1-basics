@@ -14,7 +14,7 @@
 ### Problem (train_bpe_tinystories): BPE Training on TinyStories
 - script in mytests/test_bpe_train.py
 - (a)
-  - time: 308.32 s, memory: 268048 kb (by usr/bin/time)
+  - time: 308.32 s, memory: 268048 kb (=0.25GB) (by usr/bin/time)
   - longest tokens: [b' accomplishment', b' disappointment', b' responsibility']
 - (b) (by cProfile)
   - train_bpe: 550.6
@@ -25,6 +25,7 @@
 ### Problem (train_bpe_expts_owt): BPE Training on OpenWebText
 - my os break down few times
 - (a)
-  - time: , memory:  (by usr/bin/time)
-  - longest tokens: 
+  - it seems that Counter.most_common(1) is O(nlogn), so the whole token merging is O(n2logn) 
+  - time: 11h34m, memory: 16.1 GB (by usr/bin/time)
+  - longest tokens: [b' disproportionately', b' telecommunications']
 - (b) 
