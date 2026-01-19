@@ -18,15 +18,16 @@ def get_longest_tokens(vocab: dict[int, bytes]) -> tuple[int, list[bytes]]:
 
 
 def main():
-    # dataset_name = 'TinyStoriesV2-GPT4-train'
-    dataset_name = 'owt_train'
+    dataset_name = 'TinyStoriesV2-GPT4-train'
+    # dataset_name = 'owt_train'
 
     vocab, merges = bpe.train_bpe(
         f'../data/{dataset_name}.txt',
-        # 10_000,
-        32_000,
+        10_000,
+        # 32_000,
         ['<|endoftext|>'],
-        512
+        128,
+        # 512
     )
 
     data = {

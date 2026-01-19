@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 from cs336_basics.pretokenization_example import find_chunk_boundaries
 from ._bi_linked_list import BiNode, BiLinkedList
-from ._faster_counter import FasterCounter
 
 
 def pre_tokenize(
@@ -85,11 +84,9 @@ def train_bpe(
         vocab_total += 1
 
     # initilize token pairs    
-    pre_tokens_and_count: list[tuple[BiLinkedList, int]] = [(
-            BiLinkedList(map(
-                lambda x: bytes([x]),
-                pre_token.encode()
-            )),
+    pre_tokens_and_count: list[tuple[BiLinkedList, int]] = [
+        (
+            BiLinkedList(map(lambda x: bytes([x]), pre_token.encode())),
             count
         )
         for pre_token, count in pre_tokenize(input_path, special_tokens, num_processes).items()
@@ -97,7 +94,11 @@ def train_bpe(
 
     # (token1, token2) -> {(node of token1, index of their pre tokens in pre_tokens_and_count)}
     token_pairs_pointer: dict[tuple[bytes, bytes], set[tuple[BiNode,int]]] = defaultdict(set)
-    token_pairs_count = FasterCounter()
+
+    # token_pairs_count: Counter[tuple[bytes, bytes]] = Counter()
+
+    from cppyy.gbl import TkCounter
+    token_pairs_count = TkCounter()
 
     for k, (pre_token, count) in enumerate(pre_tokens_and_count):
         i = next(iter(pre_token))
@@ -106,25 +107,39 @@ def train_bpe(
         while j != pre_token.tail:
             token_pair: tuple[bytes, bytes] = i.value, j.value
             token_pairs_pointer[token_pair].add((i, k))
-            token_pairs_count[token_pair] += count
+            # token_pairs_count[token_pair] += count
+            token_pairs_count.add(token_pair, count)
 
             i = j
             j = next(j)
+
+    # merge tokens
+    def get_most_common_with_tiebreaker(counter: Counter[tuple[bytes, bytes]]):
+        try:
+            max_count = counter.most_common(1)[0][1]
+            candidates = [key for key, count in counter.items() if count == max_count]
+            best_key = max(candidates)
+        except:
+            best_key = None
+            max_count = 0
+        
+        return best_key, max_count
 
     merges: list[tuple[bytes, bytes]] = []
 
     pbar = tqdm(total=vocab_size - vocab_total, desc='merge tokens', unit='merge')
     while vocab_total < vocab_size:
+        # token_pair, _count = get_most_common_with_tiebreaker(token_pairs_count)
+        # if token_pair is None:
+        #     break
         if token_pairs_count.empty():
             break
-
-        token_pair, _count = token_pairs_count.most_common_1()
+        token_pair, _count = token_pairs_count.most_common_1_with_tiebreaker()
         token1, token2 = token_pair
 
-        new_id = vocab_total
         new_token = token1 + token2
+        vocab[vocab_total] = new_token
         vocab_total += 1
-        vocab[new_id] = new_token
         merges.append(token_pair)
 
         for node1, i in set(token_pairs_pointer[token_pair]):
@@ -135,23 +150,31 @@ def train_bpe(
             bilist, count = pre_tokens_and_count[i]
             node0, node3 = node1.prev, next(node2)
 
+            # debug
+            # vocab[None] = None
+            # print(f'{vocab[node0.value]} {vocab[node1.value]} {vocab[node2.value]} {vocab[node3.value]}')
+
             if node0 != bilist.head:
                 token_pairs_pointer[(node0.value, node1.value)].remove((node0, i))
-                token_pairs_count[(node0.value, node1.value)] -= count
+                # token_pairs_count[(node0.value, node1.value)] -= count
+                token_pairs_count.add((node0.value, node1.value), -count)
                 token_pairs_pointer[(node0.value, new_token)].add((node0, i))
-                token_pairs_count[(node0.value, new_token)] += count
+                # token_pairs_count[(node0.value, new_token)] += count
+                token_pairs_count.add((node0.value, new_token), count)
             
             if node3 != bilist.tail:
                 token_pairs_pointer[(node2.value, node3.value)].remove((node2, i))
-                token_pairs_count[(node2.value, node3.value)] -= count
+                # token_pairs_count[(node2.value, node3.value)] -= count
+                token_pairs_count.add((node2.value, node3.value), -count)
                 token_pairs_pointer[(new_token, node3.value)].add((node1, i))
-                token_pairs_count[(new_token, node3.value)] += count
+                # token_pairs_count[(new_token, node3.value)] += count
+                token_pairs_count.add((new_token, node3.value), count)
             
             node1.value = new_token
             bilist.erase(node2)
         
+        # del token_pairs_count[token_pair]
         del token_pairs_pointer[token_pair]
-        token_pairs_count[token_pair] = 0
 
         pbar.update()
     
