@@ -151,7 +151,7 @@ def train_bpe(
             bilist.erase(node2)
         
         del token_pairs_pointer[token_pair]
-        token_pairs_count[token_pair] = 0
+        del token_pairs_count[token_pair]
 
         pbar.update()
     

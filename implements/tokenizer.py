@@ -2,6 +2,7 @@ import regex as re
 from typing import Iterable, Iterator
 
 from ._bi_linked_list import BiLinkedList
+from ._heap_dict import HeapDict
 
 class Tokenizer:
     def __init__(
@@ -18,6 +19,9 @@ class Tokenizer:
         self.token2id = {token: id for id, token in self.vocab.items()}
 
         self.merges = merges
+        self.merges2order = {merge: order for order, merge in enumerate(merges)}
+        self.total_merges = len(self.merges)
+
         self.special_tokens = special_tokens
 
         # regex pattern build
@@ -39,6 +43,52 @@ class Tokenizer:
     ):
         raise NotImplementedError
 
+    def _merge_tokens(
+        self,
+        pre_token: bytes
+    ) -> BiLinkedList:
+        tokens = BiLinkedList(map(lambda x: bytes([x]), pre_token))
+
+        token_pair_order = HeapDict()
+
+        p = next(iter(tokens))
+        q = next(p)
+        tot = 0
+
+        while q != tokens.tail:
+            token_pair: tuple[bytes, bytes] = p.value, q.value
+            order = self.merges2order.get(token_pair)
+            if order is not None:
+                token_pair_order[p] = order, tot
+                tot += 1
+
+            p = q
+            q = next(q)
+
+        while not token_pair_order.empty():
+            node1, (order, index) = token_pair_order.top()
+            node2 = next(node1)
+            token_pair: bytes = node1.value + node2.value
+            node0, node3 = node1.prev, next(node2)
+
+            node1.value = token_pair
+            tokens.erase(node2)
+            del token_pair_order[node1]
+
+            if node0 != tokens.head:
+                del token_pair_order[node0]
+                order = self.merges2order.get((node0.value, token_pair))
+                if order is not None:
+                    token_pair_order[node0] = order, index - 1
+
+            if node3 != tokens.tail:
+                del token_pair_order[node2]
+                order = self.merges2order.get((token_pair, node3.value))
+                if order is not None:
+                    token_pair_order[node1] = order, index
+
+        return tokens
+
     def encode_iterable(
         self,
         iterable: Iterable[str]
@@ -50,29 +100,8 @@ class Tokenizer:
                 else:
                     for match in re.finditer(self.pattern_pre_tokens, doc):
                         pre_token = match.group().encode()
-                        tokens = BiLinkedList(map(lambda x: bytes([x]), pre_token))
-
-                        # merge token
-                        for fir, sec in self.merges:
-                            merge = fir + sec
-                            p = next(iter(tokens))
-                            q = next(p)
-                            
-                            if q == tokens.tail:
-                                break
-
-                            while q != tokens.tail:
-                                if p.value == fir and q.value == sec:
-                                    p.value = merge
-                                    tokens.erase(q)
-                                    q = next(p)
-                                
-                                if q == tokens.tail:
-                                    break
-
-                                p = q
-                                q = next(q)
-
+                        tokens = self._merge_tokens(pre_token)
+                        
                         for token in tokens:
                             yield self.token2id[token.value]
 

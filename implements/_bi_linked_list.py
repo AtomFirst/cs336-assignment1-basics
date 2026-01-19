@@ -1,6 +1,8 @@
 from typing import Iterator
+from functools import total_ordering
 
 
+@total_ordering
 class BiNode:
     def __init__(self, value=None):
         self.value = value
@@ -9,7 +11,10 @@ class BiNode:
 
     def __next__(self):
         return self.next
-
+    
+    def __lt__(self, other):
+        return False
+    
 
 class BiLinkedList:
     def __init__(self, iterable=None):
