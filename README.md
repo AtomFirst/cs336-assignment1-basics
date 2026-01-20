@@ -1,5 +1,9 @@
 # CS336 Spring 2025 Assignment 1: Basics
 
+## Directory structure
+- `implements/`
+- `solutions/` Some scripts for solving problems in assignment and their output.
+
 For a full description of the assignment, see the assignment handout at
 [cs336_spring2025_assignment1_basics.pdf](./cs336_spring2025_assignment1_basics.pdf)
 
@@ -47,4 +51,3 @@ gunzip owt_valid.txt.gz
 
 cd ..
 ```
-
