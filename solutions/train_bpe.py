@@ -18,16 +18,16 @@ def get_longest_tokens(vocab: dict[int, bytes]) -> tuple[int, list[bytes]]:
 
 
 def main():
-    dataset_name = 'TinyStoriesV2-GPT4-train'
-    # dataset_name = 'owt_train'
+    # dataset_name = 'TinyStoriesV2-GPT4-train'
+    dataset_name = 'owt_train'
 
     vocab, merges = bpe.train_bpe(
         f'../data/{dataset_name}.txt',
-        10_000,
-        # 32_000,
+        # 10_000,
+        32_000,
         ['<|endoftext|>'],
-        128,
-        # 512,
+        # 128,
+        512,
     )
 
     data = {
@@ -53,25 +53,27 @@ Problem (train_bpe_*) (a)
 $ /usr/bin/time -v uv run train_bpe.py
 
 tinystories output:
+pre_tokenize: 100%|█████████████████████████████████████████████████████████████████████████████████████████████| 128/128 [00:11<00:00, 10.94chunk/s]
+merge tokens: 100%|██████████████████████████████████████████████████████████████████████████████████████████| 9743/9743 [00:22<00:00, 441.18merge/s]
 15 [b' accomplishment', b' disappointment', b' responsibility']
-        Command being timed: "uv run mytests/test_bpe_train.py"
-        User time (seconds): 308.32
-        System time (seconds): 5.42
-        Percent of CPU this job got: 99%
-        Elapsed (wall clock) time (h:mm:ss or m:ss): 5:13.87
+        Command being timed: "uv run train_bpe.py"
+        User time (seconds): 392.77
+        System time (seconds): 5.50
+        Percent of CPU this job got: 1004%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:39.66
         Average shared text size (kbytes): 0
         Average unshared data size (kbytes): 0
         Average stack size (kbytes): 0
         Average total size (kbytes): 0
-        Maximum resident set size (kbytes): 268048
+        Maximum resident set size (kbytes): 341696
         Average resident set size (kbytes): 0
         Major (requiring I/O) page faults: 0
-        Minor (reclaiming a frame) page faults: 1744557
-        Voluntary context switches: 18
-        Involuntary context switches: 846
+        Minor (reclaiming a frame) page faults: 1954047
+        Voluntary context switches: 2239
+        Involuntary context switches: 46184
         Swaps: 0
         File system inputs: 0
-        File system outputs: 0
+        File system outputs: 440
         Socket messages sent: 0
         Socket messages received: 0
         Signals delivered: 0
@@ -79,30 +81,7 @@ tinystories output:
         Exit status: 0
 
 owt output:
-19 [b' disproportionately', b' telecommunications']
-        Command being timed: "uv run test_bpe_train.py"
-        User time (seconds): 41608.06
-        System time (seconds): 31.89
-        Percent of CPU this job got: 99%
-        Elapsed (wall clock) time (h:mm:ss or m:ss): 11:34:14
-        Average shared text size (kbytes): 0
-        Average unshared data size (kbytes): 0
-        Average stack size (kbytes): 0
-        Average total size (kbytes): 0
-        Maximum resident set size (kbytes): 16965908
-        Average resident set size (kbytes): 0
-        Major (requiring I/O) page faults: 1
-        Minor (reclaiming a frame) page faults: 16686853
-        Voluntary context switches: 253213
-        Involuntary context switches: 1677032
-        Swaps: 0
-        File system inputs: 256
-        File system outputs: 36176
-        Socket messages sent: 0
-        Socket messages received: 0
-        Signals delivered: 0
-        Page size (bytes): 4096
-        Exit status: 0
+
 
 ---
 

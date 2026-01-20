@@ -60,11 +60,11 @@ def pre_tokenize(
         results = list(tqdm(
             pool.imap_unordered(process_chunk_partial, tasks),
             total=len(tasks),
-            desc='pre_tokenize',
+            desc='pre_tokenize.process_chunk_worker',
             unit='chunk'
         ))
     
-    for result in results:
+    for result in tqdm(results, desc='pre_tokenize.counts_merging', unit='chunk'):
         for token, count in result.items():
             pre_tokens_count[token] += count
             
@@ -121,14 +121,18 @@ def train_bpe(
             )),
             count
         )
-        for pre_token, count in pre_tokenize(input_path, special_tokens, num_processes).items()
+        for pre_token, count in tqdm(
+            pre_tokenize(input_path, special_tokens, num_processes).items(),
+            desc='init pre-token linkedlist',
+            unit='pre-token'
+        )
     ]
 
     # (token1, token2) -> {(node of token1, index of their pre tokens in pre_tokens_and_count)}
     token_pairs_pointer: dict[tuple[bytes, bytes], set[tuple[BiNode,int]]] = defaultdict(set)
     token_pairs_count = FasterCounter()
 
-    for k, (pre_token, count) in enumerate(pre_tokens_and_count):
+    for k, (pre_token, count) in tqdm(enumerate(pre_tokens_and_count), total=len(pre_tokens_and_count), desc='init token pairs', unit='pre-token'):
         i = next(iter(pre_token))
         j = next(i)
 

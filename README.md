@@ -3,6 +3,7 @@
 ## Directory structure
 - `implements/`
 - `solutions/` Some scripts for solving problems in assignment and their output.
+- `writeup.md` Answer to the problems.
 
 For a full description of the assignment, see the assignment handout at
 [cs336_spring2025_assignment1_basics.pdf](./cs336_spring2025_assignment1_basics.pdf)

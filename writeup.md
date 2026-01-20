@@ -13,19 +13,19 @@
 
 ### Problem (train_bpe_tinystories): BPE Training on TinyStories
 - script in mytests/test_bpe_train.py
-- (a)
-  - time: 308.32 s, memory: 268048 kb (=0.25GB) (by usr/bin/time)
+- (a) (with multiprocess in pre_tokenizer)
+  - time: 39.66 s (wall clock), memory: 341696 kbytes (by usr/bin/time)
   - longest tokens: [b' accomplishment', b' disappointment', b' responsibility']
 - (b) (by cProfile)
-  - train_bpe: 550.6
-    - pre_tokenize: 468.6 (maybe loops is too slow in py)
-    - get_most_common_with_tiebreaker: 75.98
-      - most_common: 38.01
+  - train_bpe: 68.0
+    - pre_tokenize: 19.8
+    - FasterCounter: 41.17
 
 ### Problem (train_bpe_expts_owt): BPE Training on OpenWebText
 - my os break down few times
 - (a)
-  - it seems that Counter.most_common(1) is O(nlogn), so the whole token merging is O(n2logn) 
-  - time: 11h34m, memory: 16.1 GB (by usr/bin/time)
+  - use FasterCounter.most_common_1() with O(logn), so the whole token merging is O(nlogn)
+  - it seems that merging is slower at the beginning, since more count of token pairs need to change.
+  - time: , memory:  (by usr/bin/time)
   - longest tokens: [b' disproportionately', b' telecommunications']
 - (b) 
