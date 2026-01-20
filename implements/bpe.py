@@ -1,12 +1,33 @@
 import os
 import regex as re
 from collections import defaultdict
+from multiprocessing import Pool, Manager
+from functools import partial
 
 from tqdm import tqdm
 
 from cs336_basics.pretokenization_example import find_chunk_boundaries
 from ._bi_linked_list import BiNode, BiLinkedList
 from ._faster_counter import FasterCounter
+
+
+def process_chunk_worker(chunk_info, input_path, pattern_special_tokens, pattern_pre_tokens):
+
+    start, end = chunk_info
+    pre_tokens_count: dict[str, int] = defaultdict(int)
+    
+    with open(input_path, "rb") as f:
+        f.seek(start)
+        chunk = f.read(end - start).decode("utf-8", errors="ignore")
+
+        # strip out all special tokens from chunk
+        for doc in re.splititer(pattern_special_tokens, chunk):
+            # Run pre-tokenization on your chunk and store the counts for each pre-token
+            for match in re.finditer(pattern_pre_tokens, doc):
+                pre_token = match.group()
+                pre_tokens_count[pre_token] += 1
+    
+    return pre_tokens_count
 
 
 def pre_tokenize(
@@ -21,23 +42,31 @@ def pre_tokenize(
         re.UNICODE
     )
 
-    pre_tokens_count: dict[str, int] = defaultdict(int)
-
     with open(input_path, "rb") as f:
         boundaries = find_chunk_boundaries(f, num_processes, b"<|endoftext|>")
 
-        # The following is a serial implementation, but you can parallelize this
-        # by sending each start/end pair to a set of processes.
-        for start, end in tqdm(zip(boundaries[:-1], boundaries[1:]), desc='pre_tokenize', unit='chunk'):
-            f.seek(start)
-            chunk = f.read(end - start).decode("utf-8", errors="ignore")
+    tasks = list(zip(boundaries[:-1], boundaries[1:]))
 
-            # strip out all special tokens from chunk
-            for doc in re.splititer(pattern_special_tokens, chunk):
-                # Run pre-tokenization on your chunk and store the counts for each pre-token
-                for match in re.finditer(pattern_pre_tokens, doc):
-                    pre_token = match.group()
-                    pre_tokens_count[pre_token] += 1
+    pre_tokens_count: dict[str, int] = defaultdict(int)
+
+    process_chunk_partial = partial(
+        process_chunk_worker,
+        input_path=input_path,
+        pattern_special_tokens=pattern_special_tokens,
+        pattern_pre_tokens=pattern_pre_tokens
+    )
+
+    with Pool(processes=min(num_processes, len(tasks))) as pool:
+        results = list(tqdm(
+            pool.imap_unordered(process_chunk_partial, tasks),
+            total=len(tasks),
+            desc='pre_tokenize',
+            unit='chunk'
+        ))
+    
+    for result in results:
+        for token, count in result.items():
+            pre_tokens_count[token] += count
             
     return pre_tokens_count
 
