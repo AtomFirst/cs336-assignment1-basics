@@ -81,7 +81,35 @@ merge tokens: 100%|████████████████████�
         Exit status: 0
 
 owt output:
-
+pre_tokenize.process_chunk_worker: 100%|██████████| 512/512 [01:21<00:00,  6.25chunk/s]
+pre_tokenize.counts_merging: 100%|██████████| 512/512 [00:50<00:00, 10.17chunk/s]
+init pre-token linkedlist: 100%|██████████| 6601892/6601892 [04:11<00:00, 26293.50pre-token/s] 
+init token pairs: 100%|██████████| 6601892/6601892 [09:14<00:00, 11903.54pre-token/s] 
+merge tokens: 100%|██████████| 31743/31743 [1:57:44<00:00,  4.49merge/s]   
+19 [b' disproportionately', b' telecommunications']
+        Command being timed: "uv run train_bpe.py"
+        User time (seconds): 10218.77
+        System time (seconds): 81.62
+        Percent of CPU this job got: 125%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 2:16:44
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 43637724
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 4
+        Minor (reclaiming a frame) page faults: 30408425
+        Voluntary context switches: 400948
+        Involuntary context switches: 629770
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 12096
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
 
 ---
 

@@ -26,6 +26,7 @@
 - (a)
   - use FasterCounter.most_common_1() with O(logn), so the whole token merging is O(nlogn)
   - it seems that merging is slower at the beginning, since more count of token pairs need to change.
-  - time: , memory:  (by usr/bin/time)
+  - it can be proved that the count of token pairs no increase with merging.
+  - time: 2h16m, memory: 43637724 (by usr/bin/time)
   - longest tokens: [b' disproportionately', b' telecommunications']
 - (b) 
