@@ -1,5 +1,7 @@
+import os
 import regex as re
 from typing import Iterable, Iterator
+import pickle
 
 from ._bi_linked_list import BiLinkedList
 from ._heap_dict import HeapDict
@@ -8,7 +10,8 @@ class Tokenizer:
     def __init__(
         self, 
         vocab: dict[int, bytes], 
-        merges: list[tuple[bytes, bytes]], special_tokens: list[str] | None = None
+        merges: list[tuple[bytes, bytes]],
+        special_tokens: list[str] | None = None
     ) -> None:
         self.vocab = vocab
         if special_tokens is not None:
@@ -38,10 +41,15 @@ class Tokenizer:
     @classmethod
     def from_files(
         cls,
-        bpe_filepath: str,
+        bpe_filepath: str | os.PathLike,
         special_tokens: list[str] | None = None
-    ):
-        raise NotImplementedError
+    ) -> 'Tokenizer':
+        with open(bpe_filepath, 'rb') as f:
+            data = pickle.load(f)
+
+        vocab, merges = data['vocab'], data['merges']
+
+        return cls(vocab, merges, special_tokens)
 
     def _merge_tokens(
         self,

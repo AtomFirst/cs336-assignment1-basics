@@ -1,7 +1,7 @@
 import os
 import regex as re
 from collections import defaultdict
-from multiprocessing import Pool, Manager
+from multiprocessing import Pool
 from functools import partial
 
 from tqdm import tqdm
@@ -11,7 +11,12 @@ from ._bi_linked_list import BiNode, BiLinkedList
 from ._faster_counter import FasterCounter
 
 
-def process_chunk_worker(chunk_info, input_path, pattern_special_tokens, pattern_pre_tokens):
+def process_chunk_worker(
+    chunk_info: tuple[int, int],
+    input_path: str | os.PathLike,
+    pattern_special_tokens: re.Pattern[str],
+    pattern_pre_tokens: re.Pattern[str]
+) -> dict[str, int]:
 
     start, end = chunk_info
     pre_tokens_count: dict[str, int] = defaultdict(int)
@@ -36,7 +41,10 @@ def pre_tokenize(
     num_processes: int = 64
 ) -> dict[str, int]:
     
-    pattern_special_tokens = '|'.join(map(re.escape, special_tokens))
+    pattern_special_tokens = re.compile(
+        '|'.join(map(re.escape, special_tokens)),
+        re.UNICODE
+    )
     pattern_pre_tokens = re.compile(
         r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+""",
         re.UNICODE
