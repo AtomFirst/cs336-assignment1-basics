@@ -50,7 +50,7 @@ if __name__ == '__main__':
 '''     
 Problem (train_bpe_*) (a)
 
-$ /usr/bin/time -v uv run test_bpe_train.py
+$ /usr/bin/time -v uv run train_bpe.py
 
 tinystories output:
 15 [b' accomplishment', b' disappointment', b' responsibility']
@@ -108,7 +108,7 @@ owt output:
 
 Problem (train_bpe_tinystories) (b)
 
-$ python -m cProfile -o bpe_train.prof test_bpe_train.py
-$ snakeviz bpe_train.prof
+$ python -m cProfile -o train_bpe.prof train_bpe.py
+$ snakeviz train_bpe.prof
 
 '''
