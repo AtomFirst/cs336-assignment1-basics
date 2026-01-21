@@ -14,12 +14,12 @@
 ### 2.5 Problem (train_bpe_tinystories): BPE Training on TinyStories
 - script in mytests/test_bpe_train.py
 - (a) (with multiprocess in pre_tokenizer)
-  - time: 39.66 s (wall clock), memory: 341696 kbytes (by usr/bin/time)
+  - time: 38.12 s (wall clock), memory: 324692 kbytes (by usr/bin/time)
   - longest tokens: [b' accomplishment', b' disappointment', b' responsibility']
 - (b) (by cProfile)
-  - train_bpe: 68.0
-    - pre_tokenize: 19.8
-    - FasterCounter: 41.17
+  - train_bpe: 
+    - pre_tokenize: 
+    - FasterCounter: 
 
 ### Problem (train_bpe_expts_owt): BPE Training on OpenWebText
 - my os break down few times
@@ -27,16 +27,16 @@
   - use FasterCounter.most_common_1() with O(logn), so the whole token merging is O(nlogn)
   - it seems that merging is slower at the beginning, since more count of token pairs need to change.
   - it can be proved that the count of token pairs no increase with merging.
-  - time: 2h16m, memory: 43637724 (by usr/bin/time)
-  - longest tokens: [b' disproportionately', b' telecommunications']
+  - time: 2h22m, memory: 42319768kbytes (by usr/bin/time)
+  - longest tokens: [b'\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82\xc3\x83\xc3\x82' ('ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ' in utf-8), b'----------------------------------------------------------------']
 - (b) 
 
 ### 2.7 Problem (tokenizer_experiments)
 - (a)(b) compression ratio
   | tokenizer \ docs | ts | owt |
   | - | - | - |
-  | ts | 4.12 | 3.35 |
-  | owt | 4.02 | 4.60 |
+  | ts | 4.03 | 3.38 |
+  | owt | 3.96 | 4.39 |
 
 - (c) throughput
   | tokenizer \ docs | ts | owt |
