@@ -137,7 +137,7 @@ def train_bpe(
     ]
 
     # (token1, token2) -> {(node of token1, index of their pre tokens in pre_tokens_and_count)}
-    token_pairs_pointer: dict[tuple[bytes, bytes], set[tuple[BiNode,int]]] = defaultdict(set)
+    token_pairs_pointer: dict[tuple[bytes, bytes], dict[tuple[BiNode,int], None]] = defaultdict(dict)
     token_pairs_count = FasterCounter()
 
     for k, (pre_token, count) in tqdm(enumerate(pre_tokens_and_count), total=len(pre_tokens_and_count), desc='init token pairs', unit='pre-token'):
@@ -146,7 +146,7 @@ def train_bpe(
 
         while j != pre_token.tail:
             token_pair: tuple[bytes, bytes] = i.value, j.value
-            token_pairs_pointer[token_pair].add((i, k))
+            token_pairs_pointer[token_pair][i, k] = None
             token_pairs_count[token_pair] += count
 
             i = j
@@ -168,7 +168,7 @@ def train_bpe(
         vocab[new_id] = new_token
         merges.append(token_pair)
 
-        for node1, i in set(token_pairs_pointer[token_pair]):
+        for node1, i in list(token_pairs_pointer[token_pair].keys()):
             if (node1, i) not in token_pairs_pointer[token_pair]:
                 continue
 
@@ -177,15 +177,15 @@ def train_bpe(
             node0, node3 = node1.prev, next(node2)
 
             if node0 != bilist.head:
-                token_pairs_pointer[(node0.value, node1.value)].remove((node0, i))
+                del token_pairs_pointer[(node0.value, node1.value)][node0, i]
                 token_pairs_count[(node0.value, node1.value)] -= count
-                token_pairs_pointer[(node0.value, new_token)].add((node0, i))
+                token_pairs_pointer[(node0.value, new_token)][node0, i] = None
                 token_pairs_count[(node0.value, new_token)] += count
             
             if node3 != bilist.tail:
-                token_pairs_pointer[(node2.value, node3.value)].remove((node2, i))
+                del token_pairs_pointer[(node2.value, node3.value)][node2, i]
                 token_pairs_count[(node2.value, node3.value)] -= count
-                token_pairs_pointer[(new_token, node3.value)].add((node1, i))
+                token_pairs_pointer[(new_token, node3.value)][node1, i] = None
                 token_pairs_count[(new_token, node3.value)] += count
             
             node1.value = new_token
