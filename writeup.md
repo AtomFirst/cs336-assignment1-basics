@@ -1,5 +1,4 @@
 # writeup
-
 ## 2 BPE 
 ### 2.1
 - (a) '\x00'
@@ -12,7 +11,7 @@
 - (c) b'\xc0\x80'
 
 ### 2.5 Problem (train_bpe_tinystories): BPE Training on TinyStories
-- script in mytests/test_bpe_train.py
+- script in solutions/test_train_bpe.sh
 - (a) (with multiprocess in pre_tokenizer)
   - time: 38.12 s (wall clock), memory: 324692 kbytes (by usr/bin/time)
   - longest tokens: [b' accomplishment', b' disappointment', b' responsibility']
@@ -57,3 +56,62 @@
   - m / v = 3.9e6 s = 1069 h
 
 - (d) 2 ** 16 = 65536, which greater than most vocab_size. Also, it is 2 bytes and easy to store.
+
+## 3 Transformer
+### 3.6 Problem (transformer_accounting)
+- script in solutions/transformer_accounting.py
+- (a) paras: 2127057600, memory: 7.9 GB
+- (b) total_flops=4,352,275,251,200
+```py
+matrix_multiplies = {
+    # layers_tuple: n, m, p
+    # ...
+    ('layers', '47', 'attn', 'q_proj'): (1024, 1600, 1600),
+    ('layers', '47', 'attn', 'k_proj'): (1024, 1600, 1600),
+    ('layers', '47', 'attn', 'v_proj'): (1024, 1600, 1600),
+    ('layers', '47', 'attn', 'output_proj'): (1024, 1600, 1600),
+    # QK
+    ('layers', '47', 'attn'): (1024, 1024, 64, 25),
+    ('layers', '47', 'ffn', 'w1'): (1024, 1600, 6400),
+    ('layers', '47', 'ffn', 'w3'): (1024, 1600, 6400),
+    ('layers', '47', 'ffn', 'w2'): (1024, 6400, 1600),
+    ('lm_head',): (1024, 1600, 50257)
+}
+```
+- (c) 
+  - k := 2 * 1024 * 1600 * 1600
+  - 1x TransformerBlock: 
+    - attn: 4 * 2 * 1024 * 1600 * 1600 + 1024 * 1024 * 64 * 25 = 4.8k
+    - ffn: 3 * 2 * 1024 * 1600 * 6400 = 12k
+  - lm_head: 2 * 1024 * 1600 * 50257 = 31k
+  - ffn in blocks requires most FLOPs
+- (d) analysis
+  - more: blocks, ffn
+  - less: lm_head, attn
+- (e) attn more
+```
+GPT-2 small :
+lm_head   :       79,047,426,048 | 23.93 %
+attn      :       77,309,411,328 | 23.41 %
+ffn       :      173,946,175,488 | 52.66 %
+
+GPT-2 medium :
+lm_head   :      105,396,568,064 | 10.74 %
+attn      :      257,698,037,760 | 26.25 %
+ffn       :      618,475,290,624 | 63.01 %
+
+GPT-2 large :
+lm_head   :      131,745,710,080 |  6.10 %
+attn      :      579,820,584,960 | 26.83 %
+ffn       :    1,449,551,462,400 | 67.07 %
+
+GPT-2 XL :
+lm_head   :      164,682,137,600 |  3.78 %
+attn      :    1,167,694,233,600 | 26.83 %
+ffn       :    3,019,898,880,000 | 69.39 %
+
+GPT-2 XL + :
+lm_head   :    2,634,914,201,600 |  2.43 %
+attn      :   57,337,813,401,600 | 52.95 %
+ffn       :   48,318,382,080,000 | 44.62 %
+```
