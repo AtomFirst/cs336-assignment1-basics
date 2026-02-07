@@ -164,6 +164,6 @@ cython_debug/
 
 # I add
 data/
-*.pkl
+# *.pkl
 *.prof
 .vscode/
