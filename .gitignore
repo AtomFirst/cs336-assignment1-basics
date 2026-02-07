@@ -163,7 +163,7 @@ cython_debug/
 *.zip
 
 # I add
-data/
+data/*.txt
 # *.pkl
 *.prof
 .vscode/

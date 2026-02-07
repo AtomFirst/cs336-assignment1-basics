@@ -52,10 +52,10 @@ def main():
     ]
 
     for dataset_name in dataset_names:
-        tokenizer = Tokenizer.from_files(Path('.') / f'bpe-{dataset_name}train.pkl') 
+        tokenizer = Tokenizer.from_files(Path('../data') / f'bpe-{dataset_name}train.pkl') 
 
         for cl in cls:
-            print(f'{dataset_names}{cl} tokenizing ...')
+            print(f'{dataset_name}{cl} tokenizing ...')
 
             with open(Path('../data') / f'{dataset_name}{cl}.txt', 'rb') as f:
                 ids = tokenizer.encode_iterable(docs_iter(f))
