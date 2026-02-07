@@ -1,5 +1,5 @@
 import math
-from typing import Callable
+from typing import Callable, Iterable
 
 import torch
 from torch import Tensor
@@ -52,23 +52,53 @@ class AdamW(torch.optim.Optimizer):
 
                 state = self.state[p]
                 t = state.get('t', 1)
-                beta1_t = state.get('beta1_t', beta1)
-                beta2_t = state.get('beta2_t', beta2)
 
                 m = state.get('m', torch.zeros_like(grad))
                 v = state.get('v', torch.zeros_like(grad))
 
                 m = beta1 * m + (1 - beta1) * grad
-                v = beta2 * v + (1 - beta2) * grad * grad
-                lr_t = lr * math.sqrt(1 - beta2_t) / (1 - beta1_t)
+                v = beta2 * v + (1 - beta2) * grad ** 2
+                lr_t = lr * math.sqrt(1 - beta2 ** t) / (1 - beta1 ** t)
 
                 p.data -= lr_t * m / (torch.sqrt(v) + eps)
                 p.data -= lr * weight_decay * p.data
 
                 state['t'] = t + 1
-                state['beta1_t'] = beta1_t * beta1
-                state['beta2_t'] = beta2_t * beta2
                 state['m'] = m
                 state['v'] = v
 
         return loss
+
+
+def get_lr_cosine_schedule(
+    it: int,
+    max_learning_rate: float,
+    min_learning_rate: float,
+    warmup_iters: int,
+    cosine_cycle_iters: int,
+) -> float:
+    if it < warmup_iters:
+        return it / warmup_iters * max_learning_rate
+    elif it <= cosine_cycle_iters:
+        theta = (it - warmup_iters) / (cosine_cycle_iters - warmup_iters) * math.pi
+        return min_learning_rate + 0.5 * (1 + math.cos(theta)) * (max_learning_rate - min_learning_rate)
+    else:
+        return min_learning_rate
+    
+
+def gradient_clipping(parameters: Iterable[torch.nn.Parameter], max_l2_norm: float, eps: float = 1e-6) -> None:
+    grads = [p.grad.data for p in parameters if p.grad is not None]
+    if len(grads) == 0:
+        return
+    
+    device = grads[0].device
+    total_norm = torch.norm(
+        torch.stack([torch.norm(g.detach(), 2).to(device) for g in grads]), 2
+    )
+
+    clip_coeff = max_l2_norm / (total_norm + eps)
+    
+    scale = torch.clamp(clip_coeff, max=1.0)
+
+    for g in grads:
+        g.mul_(scale)
