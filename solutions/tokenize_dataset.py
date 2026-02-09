@@ -43,11 +43,11 @@ def docs_iter(
 def main():
     dataset_names = [
         'TinyStoriesV2-GPT4-',
-        # 'owt_'
+        'owt_'
     ]
 
     cls = [
-        # 'train',
+        'train',
         'valid'
     ]
 
