@@ -6,6 +6,7 @@ from functools import partial
 from typing import BinaryIO, IO
 
 import numpy as np
+import torch
 import torch.optim as optim
 
 from implements.transformer import TransformerLM
@@ -63,7 +64,7 @@ class Trainer:
         self.train_dataset = memmap(data_cfg['train'], np.uint16)
         self.vaild_dataset = memmap(data_cfg['vaild'], np.uint16)
 
-        batch_cfg = self.config['batch']
+        batch_cfg = self.config['train']
         self.batch = partial(trnlp.get_batch, **batch_cfg, context_length=model_cfg['context_length'])
 
         self.iteration = 0
@@ -78,26 +79,52 @@ class Trainer:
     def train(self, epochs: int):
         scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, self.lr_cosine_schedule, self.iteration - 1)
 
-        for i in range(epochs):
+        for _ in range(epochs):
             self.optimizer.zero_grad()
 
             inputs, targets = self.batch(self.train_dataset)
+            inputs = inputs.int()
+            targets = targets.int()
+
             outputs = self.model(inputs)
             loss = trn.cross_entropy(outputs, targets)
             loss.backward()
 
-            logger.info(f'loss: {loss}')
+            if self.iteration % 100 == 0:
+                logger.info(f'step: {self.iteration}, loss: {loss}')
 
             self.optimizer.step()
             scheduler.step()
             self.iteration += 1
 
+    @torch.no_grad()
+    def evaluate(self, epochs: int = 1) -> float:
+        self.model.eval()
+        losses = []
+
+        for _ in range(epochs):
+            inputs, targets = self.batch(self.vaild_dataset)
+            inputs = inputs.int()
+            targets = targets.int()
+
+            outputs = self.model(inputs)
+            loss = trn.cross_entropy(outputs, targets)
+            losses.append(loss)
+
+        losses = torch.stack(losses)
+        mean_loss = torch.mean(losses).item()
+        logger.info(f'vaild loss: {mean_loss}')
+
+        return mean_loss
+
 
 def main():
     trainer = Trainer()
+    trainer.evaluate()
 
-    trainer.train(1)
-    trainer.save_checkpoint('last.pt')
+    # while True:
+    #     trainer.train(10000)
+    #     trainer.save_checkpoint('last.pt')
 
 
 if __name__ == '__main__':

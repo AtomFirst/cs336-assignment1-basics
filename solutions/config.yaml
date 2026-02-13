@@ -11,18 +11,18 @@ optimizer:
   betas: [0.9, 0.999]
 
 lr_schedule:
-  max_learning_rate: 6e-4
-  min_learning_rate: 6e-5
+  max_learning_rate: 6.0e-4
+  min_learning_rate: 6.0e-5
   warmup_iters: 2000
   cosine_cycle_iters: 600000
 
 datasets:
-  train: "data/TinyStoriesV2-GPT4-train.bin"
-  vaild: "data/TinyStoriesV2-GPT4-valid.bin"
+  train: "../data/TinyStoriesV2-GPT4-train.bin"
+  vaild: "../data/TinyStoriesV2-GPT4-valid.bin"
 
-batch:
+train:
   batch_size: 32
   device: "cuda"
 
 checkpoint:
-  path: ~
+  path: "last.pt"
