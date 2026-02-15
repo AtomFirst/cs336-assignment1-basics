@@ -41,7 +41,8 @@ class Trainer:
             self.config = yaml.safe_load(f)
 
         model_cfg = self.config['model']
-        self.model = TransformerLM(**model_cfg, device=self.config['train']['device'])
+        device_cfg = self.config['device']
+        self.model = TransformerLM(**model_cfg, device=device_cfg)
 
         optimizer_cfg = self.config['optimizer']
         betas = tuple(optimizer_cfg['betas'])
@@ -61,7 +62,7 @@ class Trainer:
         self.vaild_dataset = memmap(data_cfg['vaild'], np.uint16)
 
         batch_cfg = self.config['train']
-        self.batch = partial(trnlp.get_batch, **batch_cfg, context_length=model_cfg['context_length'])
+        self.batch = partial(trnlp.get_batch, **batch_cfg, context_length=model_cfg['context_length'], device=device_cfg)
 
         self.iteration = 0
 

@@ -22,7 +22,8 @@ datasets:
 
 train:
   batch_size: 32
-  device: "cuda"
+
+device: "cuda"
 
 checkpoint:
   path: "last.pt"
