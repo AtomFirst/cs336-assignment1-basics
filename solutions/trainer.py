@@ -36,12 +36,8 @@ trn.get_lr_cosine_schedule
 trnlp.get_batch
 '''
 class Trainer:
-    def __init__(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--config', type=str, default='config.yaml')
-        args = parser.parse_args()
-
-        with open(args.config, 'r') as f:
+    def __init__(self, config_path: str):
+        with open(config_path, 'r') as f:
             self.config = yaml.safe_load(f)
 
         model_cfg = self.config['model']
@@ -119,12 +115,17 @@ class Trainer:
 
 
 def main():
-    trainer = Trainer()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=str, default='config.yaml')
+    parser.add_argument('--epochs', type=int, default=1_000, help='Total training steps')
+    parser.add_argument('--save-path', type=str, default='last.pt', help='Checkpoint save path')
+    args = parser.parse_args()
+
+    trainer = Trainer(args.config)
     trainer.evaluate()
 
-    # while True:
-    #     trainer.train(10000)
-    #     trainer.save_checkpoint('last.pt')
+    trainer.train(args.epochs)
+    trainer.save_checkpoint(args.save_path)
 
 
 if __name__ == '__main__':
