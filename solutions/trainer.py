@@ -86,15 +86,15 @@ class Trainer:
             loss = trn.cross_entropy(outputs, targets)
             loss.backward()
 
-            if self.iteration % 100 == 0:
-                logger.info(f'step: {self.iteration}, loss: {loss}')
+            valid_loss = self.evaluate(1, False)
+            logger.info(f'step: {self.iteration}, train loss: {loss: .4f}, valid loss: {valid_loss: .4f}')
 
             self.optimizer.step()
             scheduler.step()
             self.iteration += 1
 
     @torch.no_grad()
-    def evaluate(self, epochs: int = 1) -> float:
+    def evaluate(self, epochs: int = 1, log: bool = True) -> float:
         self.model.eval()
         losses = []
 
@@ -109,7 +109,9 @@ class Trainer:
 
         losses = torch.stack(losses)
         mean_loss = torch.mean(losses).item()
-        logger.info(f'vaild loss: {mean_loss}')
+
+        if log:
+            logger.info(f'vaild loss: {mean_loss}')
 
         return mean_loss
 
