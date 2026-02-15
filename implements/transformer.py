@@ -1,4 +1,6 @@
+import os
 import math
+import yaml
 
 import torch
 from torch import Tensor
@@ -340,6 +342,23 @@ class TransformerLM(nn.Module):
         ])
         self.ln_final = RMSNorm(d_model, **factory_kwargs)
         self.lm_head = Linear(d_model, vocab_size, **factory_kwargs)
+
+    @classmethod
+    def from_files(
+        cls,
+        config_filepath: str | os.PathLike
+    ) -> 'TransformerLM':
+        with open(config_filepath, 'r') as f:
+            config: dict = yaml.safe_load(f)
+
+        model = cls(**config['model'], device=config['device'])
+
+        checkpoint_path = config['checkpoint']['path']
+        if checkpoint_path is not None:
+            status = torch.load(checkpoint_path)
+            model.load_state_dict(status['model'])
+
+        return model
 
     def forward(
         self,
