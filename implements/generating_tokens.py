@@ -40,7 +40,7 @@ def top_p_sampling(
 def generate(
     model: nn.Module,
     prompt: Int[Tensor, " batch_size sequence_length"],
-    end_token: int,
+    end_token_id: int,
     max_generated_length: int,
     temperature: float,
     p: float
@@ -49,10 +49,10 @@ def generate(
     
     for _ in range(max_generated_length):
         logits = model(generated)[:, -1, :]
-        next_token = top_p_sampling(logits, -1, temperature, p)
-        generated = torch.cat([generated, next_token], dim=1)
+        next_id = top_p_sampling(logits, -1, temperature, p)
+        generated = torch.cat([generated, next_id], dim=1)
 
-        if next_token.item() == end_token:
+        if next_id.item() == end_token_id:
             break
 
     return generated
