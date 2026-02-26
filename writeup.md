@@ -124,8 +124,8 @@ ffn       :   48,318,382,080,000 | 44.62 %
 
 ### 4.3 Problem (adamwAccounting)
 - (a)
-  - parameters: $ d\_model \cdot (26 \cdot num\_layer \cdot d\_model + vocab) $ (*4B)
-    - Transformer block: $ 26 \cdot d\_model^2 $
+  - parameters: $ d\_model \cdot (30 \cdot num\_layer \cdot d\_model + vocab + 1) $ (*4B)
+    - Transformer block: $ 30 \cdot d\_model^2 $
       - RMSNorm: $ d\_model $
       - MHA: $ 16 \cdot d\_model^2 $
         - proj: $ 12 \cdot d\_model^2 $
@@ -133,10 +133,11 @@ ffn       :   48,318,382,080,000 | 44.62 %
         - softmax: $ 0 $
         - weighted sum of values: $ 0 $
         - output projection: $ 4 \cdot d\_model^2 $
-      - Position-wise feed-forward: $ 8 \cdot d\_model^2 $
-        - W1 matrix multiply: $ 4 \cdot d\_model^2 $
+      - Position-wise feed-forward: $ 12 \cdot d\_model^2 $
+        - W1 matrix: $ 4 \cdot d\_model^2 $
         - SiLU: $ 0 $
-        - W2 matrix multiply: $ 4 \cdot d\_model^2 $
+        - W2 matrix: $ 4 \cdot d\_model^2 $
+        - W3 matrix: $ 4 \cdot d\_model^2 $
     - final RMSNorm: $ d\_model $
     - output embedding: $ d\_model \cdot vocab $
     - cross-entropy on logits: $ 0 $
@@ -159,7 +160,11 @@ ffn       :   48,318,382,080,000 | 44.62 %
   - gradients: (= parameters)
   - optimizer state: (= 2 parameters)
   - total: (= 4 parameters + activations)
-    - $ d\_model \cdot (104 \cdot num\_layer \cdot d\_model + 4 \cdot vocab + 28 \cdot l + 1) + b \cdot c \cdot (c \cdot l \cdot h + vocab + 1) $ (*4B)
+    - $ d\_model \cdot (120 \cdot num\_layer \cdot d\_model + 4 \cdot vocab + 28 \cdot l + 1) + b \cdot c \cdot (c \cdot l \cdot h + vocab + 1) $ (*4B)
 - (b) $ 1,309,755,392 \cdot batch\_size + 13,103,316,800 $  (*4B), 6 batchs
+  ```py
+  def memory_used(s,d,l,v,h,b,c):
+      return s*(d*(120*l*d+4*v+28*l+1)+b*c*(c*l*h+v+1))
+  ```
 - (c) (= 12 parameters) 39,303,494,400
 - (d) 4475 days
