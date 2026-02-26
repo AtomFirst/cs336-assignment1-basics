@@ -1,10 +1,10 @@
 model:
   vocab_size: 10000
   context_length: 256
-  d_model: 256
-  num_layers: 8
-  num_heads: 8
-  d_ff: 1024
+  d_model: 512
+  num_layers: 4
+  num_heads: 16
+  d_ff: 1344
   rope_theta: 10000.0
 
 optimizer:
@@ -17,13 +17,15 @@ lr_schedule:
   cosine_cycle_iters: 600000
 
 datasets:
-  train: "../data/TinyStoriesV2-GPT4-train.bin"
-  vaild: "../data/TinyStoriesV2-GPT4-valid.bin"
+  train: "./data/TinyStoriesV2-GPT4-train.bin"
+  valid: "./data/TinyStoriesV2-GPT4-valid.bin"
 
 train:
-  batch_size: 32
+  epochs: 20000
+  batch_size: 64
+  saving_per_epochs: 100
 
 device: "cuda"
 
 checkpoint:
-  path: "last.pt"
+  path: "./checkpoints/std-last.pt"

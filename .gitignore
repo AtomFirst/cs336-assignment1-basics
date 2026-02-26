@@ -167,3 +167,4 @@ data/*
 !data/*.pkl
 .vscode/
 *.pt
+wandb/*

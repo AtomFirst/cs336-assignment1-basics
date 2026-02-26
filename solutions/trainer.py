@@ -1,31 +1,17 @@
 import os
 import yaml
 import argparse
-import logging
 from functools import partial
-from typing import BinaryIO, IO
+from pathlib import Path
 
 import numpy as np
 import torch
 import torch.optim as optim
+import wandb
 
 from implements.transformer import TransformerLM
 import implements.training as trn
 import implements.training_loop as trnlp
-
-
-logger = logging.getLogger("training")
-logger.setLevel(logging.INFO)
-
-c_handler = logging.StreamHandler()
-f_handler = logging.FileHandler('train.log')
-
-format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-c_handler.setFormatter(format)
-f_handler.setFormatter(format)
-
-logger.addHandler(c_handler)
-logger.addHandler(f_handler)
 
 
 '''
@@ -36,9 +22,8 @@ trn.get_lr_cosine_schedule
 trnlp.get_batch
 '''
 class Trainer:
-    def __init__(self, config_path: str):
-        with open(config_path, 'r') as f:
-            self.config = yaml.safe_load(f)
+    def __init__(self, config):
+        self.config = config
 
         model_cfg = self.config['model']
         device_cfg = self.config['device']
@@ -59,27 +44,30 @@ class Trainer:
             return np.memmap(file_path, dtype=dtype, mode='r', shape=(num_elements,))
         
         self.train_dataset = memmap(data_cfg['train'], np.uint16)
-        self.vaild_dataset = memmap(data_cfg['vaild'], np.uint16)
+        self.valid_dataset = memmap(data_cfg['valid'], np.uint16)
 
-        batch_cfg = self.config['train']
-        self.batch = partial(trnlp.get_batch, **batch_cfg, context_length=model_cfg['context_length'], device=device_cfg)
+        train_cfg = self.config['train']
+        self.get_batch = partial(trnlp.get_batch, batch_size=train_cfg['batch_size'], context_length=model_cfg['context_length'], device=device_cfg)
 
         self.iteration = 0
 
         checkpoint_path = self.config['checkpoint']['path']
-        if checkpoint_path is not None:
+        if Path(checkpoint_path).exists():
             self.iteration = trnlp.load_checkpoint(checkpoint_path, self.model, self.optimizer)
     
-    def save_checkpoint(self, out: str | os.PathLike | BinaryIO | IO[bytes]):
-        trnlp.save_checkpoint(self.model, self.optimizer, self.iteration, out)
+    def save_checkpoint(self, path: str | None = None):
+        path = path or self.config['checkpoint']['path']
+        trnlp.save_checkpoint(self.model, self.optimizer, self.iteration, path)
 
-    def train(self, epochs: int):
+    def train(self, run: wandb.Run | None = None, epochs: int | None = None):
+        epochs = epochs or self.config['train']['epochs']
+
         scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, self.lr_cosine_schedule, self.iteration - 1)
 
-        for _ in range(epochs):
+        for epoch in range(epochs):
             self.optimizer.zero_grad()
 
-            inputs, targets = self.batch(self.train_dataset)
+            inputs, targets = self.get_batch(self.train_dataset)
             inputs = inputs.int()
             targets = targets.int()
 
@@ -87,20 +75,28 @@ class Trainer:
             loss = trn.cross_entropy(outputs, targets)
             loss.backward()
 
-            valid_loss = self.evaluate(1, False)
-            logger.info(f'step: {self.iteration}, train loss: {loss: .4f}, valid loss: {valid_loss: .4f}')
+            valid_loss = self.evaluate()
+
+            if run is not None:
+                run.log({
+                    'train_loss': loss,
+                    'valid_loss': valid_loss,   
+                })
+
+            if (epoch + 1) % self.config['train']['saving_per_epochs'] == 0:
+                self.save_checkpoint()
 
             self.optimizer.step()
             scheduler.step()
             self.iteration += 1
 
     @torch.no_grad()
-    def evaluate(self, epochs: int = 1, log: bool = True) -> float:
+    def evaluate(self, epochs: int = 1) -> float:
         self.model.eval()
         losses = []
 
         for _ in range(epochs):
-            inputs, targets = self.batch(self.vaild_dataset)
+            inputs, targets = self.get_batch(self.valid_dataset)
             inputs = inputs.int()
             targets = targets.int()
 
@@ -111,24 +107,27 @@ class Trainer:
         losses = torch.stack(losses)
         mean_loss = torch.mean(losses).item()
 
-        if log:
-            logger.info(f'vaild loss: {mean_loss}')
-
         return mean_loss
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, default='config.yaml')
-    parser.add_argument('--epochs', type=int, default=1_000, help='Total training steps')
-    parser.add_argument('--save-path', type=str, default='last.pt', help='Checkpoint save path')
+    parser.add_argument('--config', type=str)
     args = parser.parse_args()
 
-    trainer = Trainer(args.config)
-    trainer.evaluate()
+    with open(args.config, 'r') as f:
+        config = yaml.safe_load(f)
 
-    trainer.train(args.epochs)
-    trainer.save_checkpoint(args.save_path)
+    run = wandb.init(
+        entity="3235965152-nanjing-university-of-aeronautics-and-astrona",
+        project="cs336-assignment1-experiment",
+        config=config,
+    )
+
+    trainer = Trainer(config)
+    trainer.train(run)
+
+    run.finish()
 
 
 if __name__ == '__main__':
