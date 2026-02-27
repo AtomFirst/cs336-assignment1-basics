@@ -168,3 +168,10 @@ ffn       :   48,318,382,080,000 | 44.62 %
   ```
 - (c) (= 12 parameters) 39,303,494,400
 - (d) 4475 days
+
+## 7 Experiments
+### 7.2 Problem (learning_rate)
+```bash
+# at base dir
+uv run solutions/trainer.py --config-path configs/std-config.yaml --test
+```

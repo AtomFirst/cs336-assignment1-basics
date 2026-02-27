@@ -3,6 +3,7 @@ import yaml
 import argparse
 from functools import partial
 from pathlib import Path
+import copy
 
 import numpy as np
 import torch
@@ -14,13 +15,6 @@ import implements.training as trn
 import implements.training_loop as trnlp
 
 
-'''
-need conf:
-TransformerLM
-trn.AdamW
-trn.get_lr_cosine_schedule
-trnlp.get_batch
-'''
 class Trainer:
     def __init__(self, config):
         self.config = config
@@ -57,10 +51,12 @@ class Trainer:
     
     def save_checkpoint(self, path: str | None = None):
         path = path or self.config['checkpoint']['path']
-        trnlp.save_checkpoint(self.model, self.optimizer, self.iteration, path)
+        if path:
+            trnlp.save_checkpoint(self.model, self.optimizer, self.iteration, path)
 
     def train(self, run: wandb.Run | None = None, epochs: int | None = None):
         epochs = epochs or self.config['train']['epochs']
+        batch_size = self.config['train']['batch_size']
 
         scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, self.lr_cosine_schedule, self.iteration - 1)
 
@@ -80,7 +76,9 @@ class Trainer:
             if run is not None:
                 run.log({
                     'train_loss': loss,
-                    'valid_loss': valid_loss,   
+                    'valid_loss': valid_loss,
+                    'iteration': self.iteration,
+                    'batch': self.iteration * batch_size,
                 })
 
             if (epoch + 1) % self.config['train']['saving_per_epochs'] == 0:
@@ -89,6 +87,8 @@ class Trainer:
             self.optimizer.step()
             scheduler.step()
             self.iteration += 1
+
+        self.save_checkpoint()
 
     @torch.no_grad()
     def evaluate(self, epochs: int = 1) -> float:
@@ -110,17 +110,15 @@ class Trainer:
         return mean_loss
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str)
-    args = parser.parse_args()
+WANDB_CONFIG = {
+    "entity": "3235965152-nanjing-university-of-aeronautics-and-astrona",
+    "project": "cs336-assignment1-experiment",    
+}
 
-    with open(args.config, 'r') as f:
-        config = yaml.safe_load(f)
 
+def train(config):
     run = wandb.init(
-        entity="3235965152-nanjing-university-of-aeronautics-and-astrona",
-        project="cs336-assignment1-experiment",
+        **WANDB_CONFIG,
         config=config,
     )
 
@@ -128,6 +126,84 @@ def main():
     trainer.train(run)
 
     run.finish()
+
+
+def test(config):
+    sweep_config = {
+        'method': 'bayes',
+        'metric': {
+            'name': 'valid_loss',
+            'goal': 'minimize'
+        },
+        'early_terminate': {
+            'type': 'hyperband',
+            'min_iter': 200,
+            'eta': 2,
+        },
+        'parameters': {
+            'lr': {'min': 1e-5, 'max': 1e-2},
+            'batch_size': {'values': [32, 64, 128, 256]},
+        }
+    }
+
+    sweep_id = wandb.sweep(
+        **WANDB_CONFIG,
+        sweep=sweep_config, 
+    )
+
+    def update_nested_config(
+        config: dict[str, dict],
+        sweep_config: dict
+    ):
+        total_batch = 20000 * 64
+        epochs = total_batch / sweep_config['batch_size']
+        
+        config['lr_schedule'].update({
+            'max_learning_rate': sweep_config['lr'],
+            'min_learning_rate': sweep_config['lr'] * 0.1,
+            'warmup_iters': int(epochs * 0.05),
+            'cosine_cycle_iters': int(epochs * 0.9),
+        })
+
+        config['train'].update({
+            'epochs': epochs,
+            'batch_size': sweep_config['batch_size'],
+        })
+        
+        config['checkpoint']['path'] = None
+
+        return config
+
+    def sweep_train(base_config):
+        with wandb.init() as run:
+            config = update_nested_config(
+                copy.deepcopy(base_config),
+                dict(run.config),
+            )
+
+            trainer = Trainer(config)
+            trainer.train(run)
+
+    wandb.agent(
+        sweep_id,
+        function=partial(sweep_train, config),
+        count=10,
+    )
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config-path', type=str)
+    parser.add_argument('--test', type=bool, default=False)
+    args = parser.parse_args()
+
+    with open(args.config_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    if args.test:
+        test(config)
+    else:
+        train(config)
 
 
 if __name__ == '__main__':
