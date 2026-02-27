@@ -46,7 +46,9 @@ class Trainer:
         self.iteration = 0
 
         checkpoint_path = self.config['checkpoint']['path']
-        if Path(checkpoint_path).exists():
+        if checkpoint_path is None:
+            print('\ncheckpoint_path is None!\n')
+        elif Path(checkpoint_path).exists():
             self.iteration = trnlp.load_checkpoint(checkpoint_path, self.model, self.optimizer)
     
     def save_checkpoint(self, path: str | None = None):
@@ -156,7 +158,7 @@ def test(config):
         sweep_config: dict
     ):
         total_batch = 20000 * 64
-        epochs = total_batch / sweep_config['batch_size']
+        epochs = total_batch // sweep_config['batch_size']
         
         config['lr_schedule'].update({
             'max_learning_rate': sweep_config['lr'],
@@ -194,7 +196,7 @@ def test(config):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config-path', type=str)
-    parser.add_argument('--test', type=bool, default=False)
+    parser.add_argument('--test', action='store_true')
     args = parser.parse_args()
 
     with open(args.config_path, 'r') as f:
