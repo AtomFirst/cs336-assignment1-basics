@@ -143,8 +143,11 @@ def test(config):
             'eta': 2,
         },
         'parameters': {
-            'lr': {'min': 1e-5, 'max': 1e-2},
-            'batch_size': {'values': [32, 64, 128, 256]},
+            'lr': {
+                'distribution': 'log_uniform_values',
+                'min': 1e-5,
+                'max': 1e-2
+            },
         }
     }
 
@@ -157,8 +160,9 @@ def test(config):
         config: dict[str, dict],
         sweep_config: dict
     ):
-        total_batch = 20000 * 64
-        epochs = total_batch // sweep_config['batch_size']
+        total_batch = 1_280_000
+        # epochs = total_batch // sweep_config['batch_size']
+        epochs = config['train']['epochs']
         
         config['lr_schedule'].update({
             'max_learning_rate': sweep_config['lr'],
@@ -167,10 +171,10 @@ def test(config):
             'cosine_cycle_iters': int(epochs * 0.9),
         })
 
-        config['train'].update({
-            'epochs': epochs,
-            'batch_size': sweep_config['batch_size'],
-        })
+        # config['train'].update({
+        #     'epochs': epochs,
+        #     'batch_size': sweep_config['batch_size'],
+        # })
         
         config['checkpoint']['path'] = None
 
