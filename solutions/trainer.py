@@ -130,7 +130,7 @@ def train(config):
     run.finish()
 
 
-def lr_tuning(config):
+def lr_tuning(train_config):
     sweep_config = {
         'method': 'bayes',
         'metric': {
@@ -139,13 +139,13 @@ def lr_tuning(config):
         },
         'early_terminate': {
             'type': 'hyperband',
-            'min_iter': 200,
+            'min_iter': 51200 // train_config['train']['batch_size'],
             'eta': 2,
         },
         'parameters': {
             'lr': {
                 'distribution': 'log_uniform_values',
-                'min': 1e-5,
+                'min': 1e-4,
                 'max': 1e-2
             },
         }
@@ -160,8 +160,6 @@ def lr_tuning(config):
         config: dict[str, dict],
         sweep_config: dict
     ):
-        total_batch = 1_280_000
-        # epochs = total_batch // sweep_config['batch_size']
         epochs = config['train']['epochs']
         
         config['lr_schedule'].update({
@@ -170,11 +168,6 @@ def lr_tuning(config):
             'warmup_iters': int(epochs * 0.05),
             'cosine_cycle_iters': int(epochs * 0.9),
         })
-
-        # config['train'].update({
-        #     'epochs': epochs,
-        #     'batch_size': sweep_config['batch_size'],
-        # })
         
         config['checkpoint']['path'] = None
 
@@ -192,20 +185,20 @@ def lr_tuning(config):
 
     wandb.agent(
         sweep_id,
-        function=partial(sweep_train, config),
-        count=10,
+        function=partial(sweep_train, train_config),
+        count=5,
     )
 
 
-def test(config):
+def test(train_config):
     total_batch = 1_280_000
-    for batch_size in [1, 16, 128, 512]:
-        config['train'].update({
+    for batch_size in [1, 16, 64, 512]:
+        train_config['train'].update({
             'epochs': total_batch // batch_size,
             'batch_size': batch_size,
         })
-        
-        lr_tuning(config)
+
+        lr_tuning(train_config)
 
 
 def main():
