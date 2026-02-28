@@ -130,7 +130,7 @@ def train(config):
     run.finish()
 
 
-def test(config):
+def lr_tuning(config):
     sweep_config = {
         'method': 'bayes',
         'metric': {
@@ -195,6 +195,17 @@ def test(config):
         function=partial(sweep_train, config),
         count=10,
     )
+
+
+def test(config):
+    total_batch = 1_280_000
+    for batch_size in [1, 16, 128, 512]:
+        config['train'].update({
+            'epochs': total_batch // batch_size,
+            'batch_size': batch_size,
+        })
+        
+        lr_tuning(config)
 
 
 def main():

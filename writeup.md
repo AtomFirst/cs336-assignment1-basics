@@ -175,5 +175,5 @@ ffn       :   48,318,382,080,000 | 44.62 %
 # at base dir
 uv run solutions/trainer.py --config-path configs/std-config.yaml --test
 ```
-- (a) as std-config.yaml
-- (b) 
+- (a) lr = 0.002819 (batch_size = 256)
+- (b) best = 0.002819, best <= min_diverge <= 0.00712
