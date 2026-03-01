@@ -171,6 +171,8 @@ ffn       :   48,318,382,080,000 | 44.62 %
 
 ## 7 Experiments
 ### 7.2 Problem (learning_rate)
+![](figures/lr-tuning.png)
+
 ```bash
 # 1) old script (batch_size: 256)
 git checkout f2ae9e1
@@ -183,10 +185,13 @@ git checkout -
 # batch_size: {1,16,64,256,512}
 uv run solutions/lr_tuning_experiment.py --config-path configs/std-config.yaml
 ```
+
 - (a) lr = 0.002819 (batch_size = 256)
 - (b) best = 0.002819, best <= min_diverge <= 0.00712
 
 ### 7.2 Problem (batch_size_experiment)
+![](figures/batch-size-curving.png)
+
 | batch_size | best_lr | min_valid_loss |
 | - | - | - |
 | 1 | (killed since too slow) |
@@ -194,4 +199,6 @@ uv run solutions/lr_tuning_experiment.py --config-path configs/std-config.yaml
 | 64 | 6.60e-4 | 1.332 |
 | 256 | 2.82e-3 | 1.361 |
 | 512 | 5.62e-3 | 1.557 |
-- The greater batch_size is, the greater best_lr is and the greater valid_loss is.
+
+The greater batch_size is, the greater best_lr is and the greater valid_loss is.
+
