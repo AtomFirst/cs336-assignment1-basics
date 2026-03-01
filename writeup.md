@@ -172,8 +172,21 @@ ffn       :   48,318,382,080,000 | 44.62 %
 ## 7 Experiments
 ### 7.2 Problem (learning_rate)
 ```bash
+git checkout f2ae9e1
 # at base dir
 uv run solutions/trainer.py --config-path configs/std-config.yaml --test
+# go back
+git checkout -
 ```
 - (a) lr = 0.002819 (batch_size = 256)
 - (b) best = 0.002819, best <= min_diverge <= 0.00712
+
+### 7.2 Problem (batch_size_experiment)
+| batch_size | best_lr | min_valid_loss |
+| - | - | - |
+| 1 | (killed since too slow) |
+| 16 | 3.74e-4 | 1.212 |
+| 64 | 6.60e-4 | 1.332 |
+| 256 | 2.82e-3 | 1.361 |
+| 512 | 5.62e-3 | 1.557 |
+- The greater batch_size is, the greater best_lr is and the greater valid_loss is.
