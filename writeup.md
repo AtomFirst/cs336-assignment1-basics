@@ -172,11 +172,16 @@ ffn       :   48,318,382,080,000 | 44.62 %
 ## 7 Experiments
 ### 7.2 Problem (learning_rate)
 ```bash
+# 1) old script (batch_size: 256)
 git checkout f2ae9e1
 # at base dir
 uv run solutions/trainer.py --config-path configs/std-config.yaml --test
 # go back
 git checkout -
+
+# 2) new script without running
+# batch_size: {1,16,64,256,512}
+uv run solutions/lr_tuning_experiment.py --config-path configs/std-config.yaml
 ```
 - (a) lr = 0.002819 (batch_size = 256)
 - (b) best = 0.002819, best <= min_diverge <= 0.00712
