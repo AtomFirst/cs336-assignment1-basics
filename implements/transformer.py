@@ -31,6 +31,9 @@ class Linear(nn.Module):
         sigma = math.sqrt(2 / (in_features + out_features))
         nn.init.trunc_normal_(self.weight, 0, sigma ** 2, -3 * sigma, 3 * sigma)
 
+    def extra_repr(self) -> str:
+        return f'in_features = {self.in_features}, out_features = {self.out_features}'
+
     def forward(
         self,
         x: Float[Tensor, '... d_in']
