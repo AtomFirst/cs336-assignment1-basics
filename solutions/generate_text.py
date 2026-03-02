@@ -1,9 +1,7 @@
+import yaml
 import argparse
-from pathlib import Path
 
 import torch
-import torch.nn as nn
-from jaxtyping import Float, Int
 
 from implements.transformer import TransformerLM
 from implements.tokenizer import Tokenizer
@@ -35,15 +33,29 @@ def generate_text(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--checkpoint-path', type=str, help='模型权重路径')
+    parser.add_argument('-c', '--config-path', type=str, help='模型配置路径')
     parser.add_argument('-t', '--tokenizer-data-path', type=str, help='分词器数据路径')
+    parser.add_argument('-m', '--max-generated-length', type=int, help='最大生成token数', default=128)
+    parser.add_argument('--temperature', type=float, help='生成温度', default=1.0)
+    parser.add_argument('--p', type=float, help='累积概率阈值', default=0.9)
     parser.add_argument('prompt', type=str, help='提示词')
     args = parser.parse_args()
 
-    model = TransformerLM.from_files(args.checkpoint_path)
+    with open(args.config_path, 'r') as f:
+        config: dict = yaml.safe_load(f)
+
+    model = TransformerLM.from_files(args.config_path)
     tokenizer = Tokenizer.from_files(args.tokenizer_data_path)
 
-    generated = generate_text(model, tokenizer, args.prompt)
+    generated = generate_text(
+        model,
+        tokenizer,
+        args.prompt,
+        args.max_generated_length,
+        args.temperature,
+        args.p,
+        config['device']
+    )
 
     for token in generated:
         print(token, end='')
