@@ -1,7 +1,10 @@
+from typing import Iterator
+
 import torch
-import torch.nn as nn
 from torch import Tensor
 from jaxtyping import Float, Int
+
+from implements.transformer import TransformerLM
 
 
 def softmax(
@@ -38,21 +41,24 @@ def top_p_sampling(
 
 
 def generate(
-    model: nn.Module,
-    prompt: Int[Tensor, " batch_size sequence_length"],
+    model: TransformerLM,
+    prompt: Int[Tensor, "sequence_length"],
     end_token_id: int,
     max_generated_length: int,
     temperature: float,
     p: float
-) -> Int[Tensor, " batch_size new_sequence_length"]:
-    generated = prompt.clone()
+) -> Iterator[int]:
+# ) -> Int[Tensor, "new_sequence_length"]:
+    generated = prompt.clone().reshape(1, -1)
     
     for _ in range(max_generated_length):
-        logits = model(generated)[:, -1, :]
+        logits = model(generated[:, -model.context_length:])[:, -1, :]
         next_id = top_p_sampling(logits, -1, temperature, p)
         generated = torch.cat([generated, next_id], dim=1)
+
+        yield next_id.item()
 
         if next_id.item() == end_token_id:
             break
 
-    return generated
+    # return generated

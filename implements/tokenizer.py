@@ -125,3 +125,5 @@ class Tokenizer:
     ) -> str:
         tokens = [self.vocab[id] for id in ids]
         return b''.join(tokens).decode(errors='replace')
+        # tokens = [(id, self.vocab[id]) for id in ids]
+        # return tokens
