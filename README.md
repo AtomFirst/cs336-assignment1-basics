@@ -8,7 +8,44 @@
 
 fork from [stanford-cs336/assignment1-basics](https://github.com/stanford-cs336/assignment1-basics.git)
 
+## Training
+
+(setup first)
+
+### Train BPE
+```bash
+cd solutions
+./test_train_bpe.sh
+mv bpe-{TinyStoriesV2-GPT4-,owt_}train.pkl ../data
+cd ..
+```
+
+### Tokenize datasets
+```bash
+cd solutions
+uv run tokenize_dataset.py
+cd ..
+```
+
+### Train model
+
+(you should sign up a Weights & Biases account and replace 'entity' of WANDB_CONFIG in solutions/trainer.py and export WANDB_API_KEY. It's for logging training)
+
+```bash
+uv run solutions/trainer.py --config-path configs/std-config.yaml --title 'train-on-TinyStoriesV2'
+```
+
+## Generating
+
+(The model is trained on TinyStoriesV2, so it can write simple story but cannot solve math problems or coding)
+
+```bash
+uv run solutions/generate_text.py -c configs/std-config.yaml -t data/bpe-TinyStoriesV2-GPT4-train.pkl <your_prompt>
+```
+
 ---
+
+(README of main branch)
 
 For a full description of the assignment, see the assignment handout at
 [cs336_spring2025_assignment1_basics.pdf](./cs336_spring2025_assignment1_basics.pdf)
