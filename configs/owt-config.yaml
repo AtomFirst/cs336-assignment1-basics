@@ -1,0 +1,31 @@
+model:
+  vocab_size: 10000
+  context_length: 256
+  d_model: 512
+  num_layers: 4
+  num_heads: 16
+  d_ff: 1344
+  rope_theta: 10000.0
+
+optimizer:
+  betas: [0.9, 0.999]
+
+lr_schedule:
+  max_learning_rate: 0.0028193193595689205
+  min_learning_rate: 0.00028193193595689205
+  warmup_iters: 250
+  cosine_cycle_iters: 4500
+
+datasets:
+  train: "./data/owt_train.bin"
+  valid: "./data/owt_valid.bin"
+
+train:
+  epochs: 5000
+  batch_size: 256
+  saving_per_epochs: 100
+
+device: "cuda"
+
+checkpoint:
+  path: "./checkpoints/owt-last.pt"

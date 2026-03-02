@@ -205,3 +205,9 @@ The greater batch_size is, the greater best_lr is and the greater valid_loss is.
 ![](figures/ablation.png)
 
 The impact of RMSNorm: make it easy to train
+
+### 7.4 Problem (main_experiment)
+```bash
+uv run solutions/trainer.py --config-path configs/std-config.yaml --title 'train-on-TinyStoriesV2'
+uv run solutions/trainer.py --config-path configs/owt-config.yaml --title 'train-on-owt'
+```

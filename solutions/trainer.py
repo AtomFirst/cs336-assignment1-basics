@@ -117,10 +117,11 @@ WANDB_CONFIG = {
 }
 
 
-def train(config):
+def train(config, title: str):
     run = wandb.init(
         **WANDB_CONFIG,
         config=config,
+        name=title
     )
 
     trainer = Trainer(config)
@@ -132,12 +133,13 @@ def train(config):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config-path', type=str)
+    parser.add_argument('--title', type=str)
     args = parser.parse_args()
 
     with open(args.config_path, 'r') as f:
         config = yaml.safe_load(f)
 
-    train(config)
+    train(config, args.title)
 
 
 if __name__ == '__main__':
