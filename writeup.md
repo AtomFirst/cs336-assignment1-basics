@@ -207,6 +207,10 @@ The greater batch_size is, the greater best_lr is and the greater valid_loss is.
 The impact of RMSNorm: make it easy to train
 
 ### 7.4 Problem (main_experiment)
+![](figures/ts-owt-compare.png)
+
+Model fail to fit owt.
+
 ```bash
 uv run solutions/trainer.py --config-path configs/std-config.yaml --title 'train-on-TinyStoriesV2'
 uv run solutions/trainer.py --config-path configs/owt-config.yaml --title 'train-on-owt'
@@ -217,3 +221,4 @@ uv run solutions/trainer.py --config-path configs/owt-config.yaml --title 'train
 uv run solutions/generate_text.py -c configs/std-config.yaml -t data/bpe-TinyStoriesV2-GPT4-train.pkl <prompt>
 uv run solutions/generate_text.py -c configs/owt-config.yaml -t data/bpe-owt_train.pkl <prompt>
 ```
+
