@@ -200,3 +200,8 @@ uv run solutions/lr_tuning_experiment.py --config-path configs/std-config.yaml
 
 The greater batch_size is, the greater best_lr is and the greater valid_loss is.
 
+### 7.3 Problem (ablation)
+![](figures/layer-norm-ablation.png)
+![](figures/ablation.png)
+
+The impact of RMSNorm: make it easy to train
