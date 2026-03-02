@@ -358,7 +358,7 @@ class TransformerLM(nn.Module):
 
         checkpoint_path = config['checkpoint']['path']
         if checkpoint_path is not None:
-            status = torch.load(checkpoint_path)
+            status = torch.load(checkpoint_path, map_location=config['device'])
             model.load_state_dict(status['model'])
 
         return model
