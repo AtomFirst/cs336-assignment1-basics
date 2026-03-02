@@ -82,7 +82,7 @@ def main():
             docs.append(sample_documents(f, num_docs))
 
     tokenizers = [
-        Tokenizer.from_files(Path('.') / f'bpe-{dataset_name}train.pkl') 
+        Tokenizer.from_files(Path('.') / f'bpe-{dataset_name}train.pkl', ['<|endoftext|>']) 
         for dataset_name in dataset_names
     ]
 

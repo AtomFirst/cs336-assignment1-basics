@@ -52,7 +52,7 @@ def main():
     ]
 
     for dataset_name in dataset_names:
-        tokenizer = Tokenizer.from_files(Path('../data') / f'bpe-{dataset_name}train.pkl') 
+        tokenizer = Tokenizer.from_files(Path('../data') / f'bpe-{dataset_name}train.pkl', ['<|endoftext|>'])
 
         for cl in cls:
             print(f'{dataset_name}{cl} tokenizing ...')

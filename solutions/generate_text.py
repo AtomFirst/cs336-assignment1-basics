@@ -45,7 +45,7 @@ def main():
         config: dict = yaml.safe_load(f)
 
     model = TransformerLM.from_files(args.config_path)
-    tokenizer = Tokenizer.from_files(args.tokenizer_data_path)
+    tokenizer = Tokenizer.from_files(args.tokenizer_data_path, ['<|endoftext|>'])
 
     generated = generate_text(
         model,
