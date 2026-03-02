@@ -32,6 +32,7 @@ def generate_text(
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--tokenizer-data-path', type=str, help='分词器数据路径')
     parser.add_argument('prompt', type=str, help='提示词')
     args = parser.parse_args()
 
