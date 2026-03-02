@@ -32,12 +32,13 @@ def generate_text(
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--checkpoint-path', type=str, help='模型权重路径')
     parser.add_argument('-t', '--tokenizer-data-path', type=str, help='分词器数据路径')
     parser.add_argument('prompt', type=str, help='提示词')
     args = parser.parse_args()
 
-    model = TransformerLM.from_files('config.yaml')
-    tokenizer = Tokenizer.from_files('../data/bpe-TinyStoriesV2-GPT4-train.pkl')
+    model = TransformerLM.from_files(args.checkpoint_path)
+    tokenizer = Tokenizer.from_files(args.tokenizer_data_path)
 
     generated = generate_text(model, tokenizer, args.prompt)
     print(generated)

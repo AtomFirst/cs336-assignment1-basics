@@ -211,3 +211,9 @@ The impact of RMSNorm: make it easy to train
 uv run solutions/trainer.py --config-path configs/std-config.yaml --title 'train-on-TinyStoriesV2'
 uv run solutions/trainer.py --config-path configs/owt-config.yaml --title 'train-on-owt'
 ```
+
+### 7.2 Problem (generate)
+```bash
+uv run solutions/generate_text.py -c configs/std-config.yaml -t data/bpe-TinyStoriesV2-GPT4-train.pkl <prompt>
+uv run solutions/generate_text.py -c configs/owt-config.yaml -t data/bpe-owt_train.pkl <prompt>
+```
