@@ -124,31 +124,29 @@ ffn       :   48,318,382,080,000 | 44.62 %
 
 ### 4.3 Problem (adamwAccounting)
 - (a)
-  - parameters: $ d\_model \cdot (30 \cdot num\_layer \cdot d\_model + vocab + 1) $ (*4B)
-    - Transformer block: $ 30 \cdot d\_model^2 $
+  - parameters: $ d\_model \cdot (14 \cdot num\_layer \cdot d\_model + vocab + 1) $ (*4B)
+    - Transformer block: $ 14 \cdot d\_model^2 $
       - RMSNorm: $ d\_model $
-      - MHA: $ 16 \cdot d\_model^2 $
-        - proj: $ 12 \cdot d\_model^2 $
+      - MHA: $ 4 \cdot d\_model^2 $
+        - proj: $ 3 \cdot d\_model^2 $
         - $ Q^TK $: $ 0 $
         - softmax: $ 0 $
         - weighted sum of values: $ 0 $
-        - output projection: $ 4 \cdot d\_model^2 $
-      - Position-wise feed-forward: $ 12 \cdot d\_model^2 $
-        - W1 matrix: $ 4 \cdot d\_model^2 $
+        - output projection: $ d\_model^2 $
+      - Position-wise feed-forward: $ 8 \cdot d\_model^2 $
+        - W matrix: $ 8 \cdot d\_model^2 $
         - SiLU: $ 0 $
-        - W2 matrix: $ 4 \cdot d\_model^2 $
-        - W3 matrix: $ 4 \cdot d\_model^2 $
     - final RMSNorm: $ d\_model $
     - output embedding: $ d\_model \cdot vocab $
     - cross-entropy on logits: $ 0 $
-  - activations: $ b \cdot c \cdot (2 \cdot l \cdot c \cdot h + (28 \cdot l + 1) \cdot d\_model + vocab + 1) $ (*4B)
-    - Transformer block: $ b \cdot c \cdot (2 \cdot c \cdot h + 28 \cdot d\_model) $
+  - activations: $ b \cdot c \cdot (2 \cdot l \cdot c \cdot h + (16 \cdot l + 1) \cdot d\_model + vocab + 1) $ (*4B)
+    - Transformer block: $ b \cdot c \cdot (2 \cdot c \cdot h + 16 \cdot d\_model) $
       - RMSNorm: $ b \cdot c \cdot d\_model $
-      - MHA: $ b \cdot c \cdot (2 \cdot c \cdot h + 17 \cdot d\_model) $
-        - proj: $ 12 \cdot b \cdot c \cdot d\_model $
+      - MHA: $ b \cdot c \cdot (2 \cdot c \cdot h + 5 \cdot d\_model) $
+        - proj: $ 3 \cdot b \cdot c \cdot d\_model $
         - $ Q^TK $: $ b \cdot c^2 \cdot h $
         - softmax: $ b \cdot c^2 \cdot h $
-        - weighted sum of values: $ 4 \cdot b \cdot c \cdot d\_model $
+        - weighted sum of values: $ b \cdot c \cdot d\_model $
         - output projection: $ b \cdot c \cdot d\_model $
       - Position-wise feed-forward: $ 9 \cdot b \cdot c \cdot d\_model $
         - W1 matrix multiply: $ 4 \cdot b \cdot c \cdot d\_model $
@@ -160,13 +158,13 @@ ffn       :   48,318,382,080,000 | 44.62 %
   - gradients: (= parameters)
   - optimizer state: (= 2 parameters)
   - total: (= 4 parameters + activations)
-    - $ d\_model \cdot (120 \cdot num\_layer \cdot d\_model + 4 \cdot vocab + 28 \cdot l + 1) + b \cdot c \cdot (c \cdot l \cdot h + vocab + 1) $ (*4B)
-- (b) $ 1,309,755,392 \cdot batch\_size + 13,103,316,800 $  (*4B), 6 batchs
+    - $ 4 \cdot d\_model \cdot (14 \cdot num\_layer \cdot d\_model + vocab + 1) + b \cdot c \cdot (2 \cdot l \cdot c \cdot h + (16 \cdot l + 1) \cdot d\_model + vocab + 1) $ (*4B)
+- (b) $ 15'311'908'864 \cdot batch\_size + 28'811'750'400 $  (*4B), max batch size: 3
   ```py
   def memory_used(s,d,l,v,h,b,c):
-      return s*(d*(120*l*d+4*v+28*l+1)+b*c*(c*l*h+v+1))
+      return s*(4*d*(14*l*d+v+1)+b*c*(2*l*c*h+(16*l+1)*d+v+1))
   ```
-- (c) (= 12 parameters) 39,303,494,400
+- (c) (= 14 parameters)
 - (d) 4475 days
 
 ## 7 Experiments
