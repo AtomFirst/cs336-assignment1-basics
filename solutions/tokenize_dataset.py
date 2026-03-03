@@ -42,7 +42,7 @@ def docs_iter(
 
 def main():
     dataset_names = [
-        'TinyStoriesV2-GPT4-',
+        # 'TinyStoriesV2-GPT4-',
         'owt_'
     ]
 

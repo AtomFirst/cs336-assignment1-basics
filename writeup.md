@@ -209,6 +209,8 @@ The impact of RMSNorm: make it easy to train
 ### 7.4 Problem (main_experiment)
 ![](figures/ts-owt-compare.png)
 
+(Here I found a bug in tokenizer calling which tokenizes <|endoftext|> as ordinary word. I have fixed it (commit 6ccd99c), but no redo foregoing experients. This is because the bug hardly affect valid loss.)
+
 Model fail to fit owt.
 
 ```bash
@@ -218,7 +220,14 @@ uv run solutions/trainer.py --config-path configs/owt-config.yaml --title 'train
 
 ### 7.2 Problem (generate)
 ```bash
-uv run solutions/generate_text.py -c configs/std-config.yaml -t data/bpe-TinyStoriesV2-GPT4-train.pkl <prompt>
-uv run solutions/generate_text.py -c configs/owt-config.yaml -t data/bpe-owt_train.pkl <prompt>
+uv run solutions/generate_text.py -c configs/std-config.yaml -t data/bpe-TinyStoriesV2-GPT4-train.pkl -m 256 <prompt>
+uv run solutions/generate_text.py -c configs/owt-config.yaml -t data/bpe-owt_train.pkl -m 256 <prompt>
 ```
 
+```bash
+$ uv run solutions/generate_text.py -c configs/std-config.yaml -t data/bpe-TinyStoriesV2-GPT4-train.pkl -m 256 'Sam got up early this morning'
+ and flew away with his friends. 
+After flying back, all of the birds were happy to see Sam and wished him luck to use his shiny license again. Sam's friends thanked him for taking them to see how he helped them, and Sam was the first to use his shiny license to help him reach out the wind, speed, and play in the air.
+The moral of the story is that when we all support someone, we can always find a way to help out and use your own special ways to use your things.
+<|endoftext|>
+```
