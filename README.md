@@ -6,8 +6,6 @@
 - `solutions/` Some scripts for solving problems in assignment and their output.
 - `writeup.md` Answer to the problems.
 
-fork from [stanford-cs336/assignment1-basics](https://github.com/stanford-cs336/assignment1-basics.git)
-
 ## Training
 
 (setup first)
@@ -42,6 +40,8 @@ uv run solutions/trainer.py --config-path configs/std-config.yaml --title 'train
 ```bash
 uv run solutions/generate_text.py -c configs/std-config.yaml -t data/bpe-TinyStoriesV2-GPT4-train.pkl <your_prompt>
 ```
+
+fork from [stanford-cs336/assignment1-basics](https://github.com/stanford-cs336/assignment1-basics.git)
 
 ---
 
