@@ -8,7 +8,7 @@ Train a small language model which can generate simple stories in English.
 - [writeup.md](writeup.md) Answer to the problems
 
 ## Training
-[Setup](#setup) first, or you can download [checkpoint]() and [generate text](#generating) without training
+[Setup](#setup) first (you can jump dataset downloads if use checkpoint or tokenized datasets), or you can download [checkpoint](https://github.com/AtomFirst/cs336-assignment1-basics/releases/tag/v1.0) and [generate text](#generating) without training
 
 ### Train BPE
 You can jump this step as bpe datas have been placed in [data/](data/)
@@ -21,7 +21,7 @@ cd ..
 ```
 
 ### Tokenize datasets
-You can download [tokenized datasets]() and jump this step
+You can download [tokenized datasets](https://github.com/AtomFirst/cs336-assignment1-basics/releases/tag/v1.0) and jump this step
 
 ```bash
 cd solutions
