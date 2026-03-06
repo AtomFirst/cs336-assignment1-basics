@@ -35,7 +35,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config-path', type=str, help='模型配置路径')
     parser.add_argument('-t', '--tokenizer-data-path', type=str, help='分词器数据路径')
-    parser.add_argument('-m', '--max-generated-length', type=int, help='最大生成token数', default=128)
+    parser.add_argument('-m', '--max-generated-length', type=int, help='最大生成token数', default=1024)
     parser.add_argument('--temperature', type=float, help='生成温度', default=1.0)
     parser.add_argument('--p', type=float, help='累积概率阈值', default=0.9)
     parser.add_argument('prompt', type=str, help='提示词')
